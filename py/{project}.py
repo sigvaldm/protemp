@@ -1,5 +1,5 @@
 """
-Copyright {year} {author} <{mail}>
+Copyright {year} {author} <{email}>
 
 This file is part of {project}.
 
