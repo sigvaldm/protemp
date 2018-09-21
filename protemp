@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# Copyright 2018 Sigvald Marholm <marholm@marebakken.com>
+# 
+# This file is part of protemp.
+# 
+# protemp is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# protemp is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public License
+# along with protemp.  If not, see <http://www.gnu.org/licenses/>.
+
+source substitutes.sh
+
+function substitute {
+
+    dir=$1
+    key=$2
+    value=$3
+
+    for file in "$dir/*"
+    do
+        sed -i "s/{$key}/$value/g" $file
+    done
+
+    rename "{$key}" "$value" $dir/*
+
+}
+
+function exists_on_pypi {
+    http_status=$(curl -I https://pypi.org/project/$1/ | grep -oP "HTTP.*\d\d\d" | grep -oP "\d\d\d")
+    if [ "$http_status" -ne "404" ]
+    then
+        echo "1"
+    else
+        echo "0"
+    fi
+}
+
+function exists_on_github {
+    not_found=$(curl https://api.github.com/repos/sigvaldm/frmtt | grep "Not Found" | wc -l)
+    if [ "$not_found" -eq 1 ]
+    then
+        echo "0"
+    else
+        echo "1"
+    fi
+}
+
+read -p "Project name: " project
+echo $(exists_on_pypi $project)
+if [ "$(exists_on_pypi $project)" -eq 1 ]
+then
+    echo "$project already exists on PyPI"
+    exit 1
+elif [ "$(exists_on_github $project)" -eq 1 ]
+then
+    echo "$project already exists on GitHub"
+    exit 1
+fi
+
+read -p "Short description: " desc
+
+github_user=$(git config github.user)
+if [ "$github_user" = "" ]; then
+    echo "Could not find github username, run 'git config --global github.user <username>'"
+    exit 1
+fi
+
+github_token=$(git config github.token)
+if [ "$github_token" = "" ]; then
+    echo "Could not find github token, run 'git config --global github.token <token>'. Token is made on GitHub Settings->Developers->Personal Access Tokens. Needs the scopes repo:status and public_repo."
+    exit 1
+fi
+
+scriptbase=$(dirname $0)
+cp -r "$scriptbase/py" "$project"
+
+substitute "$project" project "$project"
+substitute "$project" desc "$desc"
+substitute "$project" year $(date +"%Y")
+
+substitute "$project" author "$author"
+substitute "$project" email "$email"
+substitute "$project" github_user "$github_user"
+substitute "$project" travis_user "$travis_user"
+
+cd $project
+git init
+git add .
+git commit -m 'Initial commit'
+git remote add origin "git@github.com:$github_user/$project.git"
+
+echo "Now create the project on GitHub, Travis, Coveralls and PyPI"
+
+# curl -u "$github_user:$github_token" https://api.github.com/user/repos -d '{"name":"'$project'"}'
+# git push -u origin master
