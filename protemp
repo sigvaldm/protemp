@@ -102,4 +102,11 @@ git remote add origin "git@github.com:$github_user/$project.git"
 curl -u "$github_user:$github_token" https://api.github.com/user/repos -d '{"name":"'$project'"}'
 git push -u origin master
 
-echo "Now create the project on Travis, Coveralls and PyPI"
+echo ""
+echo "Some steps are not yet automated:"
+echo "1. Go to GitHub and enter Project Description"
+echo "2. Go to GitHub Applications and enable repo for Travis CI"
+echo "3. Go to Coveralls and enable repo"
+echo "4. run travis encrypt --pro --add deploy.password"
+echo "5. git tag -a 0.1.0"
+echo "6. git push --tags (this gets it to PyPI so it's reserved)"
