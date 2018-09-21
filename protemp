@@ -98,7 +98,8 @@ git add .
 git commit -m 'Initial commit'
 git remote add origin "git@github.com:$github_user/$project.git"
 
-echo "Now create the project on GitHub, Travis, Coveralls and PyPI"
+# If creating on GitHub
+curl -u "$github_user:$github_token" https://api.github.com/user/repos -d '{"name":"'$project'"}'
+git push -u origin master
 
-# curl -u "$github_user:$github_token" https://api.github.com/user/repos -d '{"name":"'$project'"}'
-# git push -u origin master
+echo "Now create the project on Travis, Coveralls and PyPI"
