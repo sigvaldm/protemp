@@ -24,8 +24,11 @@ from io import open # Necessary for Python 2.7
 with open('README.rst', encoding='utf-8') as f:
     long_description = f.read()
 
+with open('.version') as f:
+    version = f.read().strip()
+
 setup(name='{project}',
-      version='0.1.0',
+      version=version,
       description='{desc}',
       long_description=long_description,
       author='{author}',
